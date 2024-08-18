@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "api": {
+      "baseUrl": "TEST"
+    },
+    "config": {
+      "outputBucket": "",
+      "incrementalOutput": false
+    }
+  }
+}

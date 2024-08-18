@@ -1,0 +1,53 @@
+name: Set Keboola Branch ID
+description: Set's Keboola Branch ID for the current git branch or creates a new one and maps it
+inputs:
+  kbcSapiToken:
+    description: Keboola Connection Storage API Token
+    required: true
+  createBranchIfNotExists:
+    description: Create new Dev Branch if none is mapped and branch with the same name does not exist
+    required: false
+    default: 'false'
+  kbcBranchId:
+    description: Keboola Connection Branch ID
+    required: false
+    default: ''
+outputs:
+  branch_id:
+    description: 'Branch ID'
+    # need to specify the extra `value` field for `composite` actions
+    value: ${{ steps.kbc-set-branch-id.outputs.branch_id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+#    - name: Install Dependencies
+#      run: pip install -r requirements.txt
+#      shell: bash
+    - name: Pass Inputs to Shell
+      run: |
+        echo "BRANCH_ID=${{ inputs.kbcBranchId }}" >> $GITHUB_ENV
+        echo "CREATE_NEW=${{ inputs.createBranchIfNotExists }}" >> $GITHUB_ENV
+      shell: bash
+    - name: Check out repository code
+      uses: actions/checkout@v4
+    - name: Get Keboola Branch ID or create new one
+      env:
+        # filled by the script
+        KBC_STORAGE_API_TOKEN: ${{ inputs.kbcSapiToken }}
+      id: kbc-set-branch-id
+      run: python .github/actions/kbc_set_branch_id/src/set_branch.py
+      shell: bash
+    - name: Commit
+      # if: ${{ steps.kbc-set-branch-id.outputs.branch_id  != '' }}
+      run: |
+        currentDate=`date +%Y-%m-%d:%T%Z`
+        git config --global user.name 'Keboola CLI'
+        git config --global user.email 'keboola-cli@users.noreply.github.com'
+        git add -A
+        git commit -a -m "Updating branch mapping metadata $currentDate" || true
+        git push
+      shell: bash

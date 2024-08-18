@@ -1,0 +1,23 @@
+name: TEST ACTION
+on:
+  workflow_dispatch:
+    inputs:
+      dest_env:
+        description: 'Destination Environment (OPT)'
+        default: ''
+permissions:
+  contents: write
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    name: Test get branch id
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        id: get_branch_id
+        uses: ./.github/actions/kbc_set_branch_id
+        with:
+          kbcSapiToken: ${{ secrets.KBC_SAPI_TOKEN }}
+          createBranchIfNotExists: 'true'
+          kbcBranchId: 123

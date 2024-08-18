@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "project": {
+    "id": 10116,
+    "apiHost": "connection.keboola.com"
+  },
+  "allowTargetEnv": true,
+  "sortBy": "id",
+  "naming": {
+    "branch": "{branch_name}",
+    "config": "{component_type}/{component_id}/{config_name}",
+    "configRow": "rows/{config_row_name}",
+    "schedulerConfig": "schedules/{config_name}",
+    "sharedCodeConfig": "_shared/{target_component_id}",
+    "sharedCodeConfigRow": "codes/{config_row_name}",
+    "variablesConfig": "variables",
+    "variablesValuesRow": "values/{config_row_name}",
+    "dataAppConfig": "app/{component_id}/{config_name}"
+  },
+  "allowedBranches": [
+    "994982"
+  ],
+  "ignoredComponents": [],
+  "templates": {
+    "repositories": [
+      {
+        "type": "git",
+        "name": "keboola",
+        "url": "https://github.com/keboola/keboola-as-code-templates.git",
+        "ref": "main"
+      }
+    ]
+  },
+  "branches": [
+    {
+      "id": 994982,
+      "path": "main"
+    }
+  ],
+  "configurations": [
+    {
+      "branchId": 994982,
+      "componentId": "ex-generic-v2",
+      "id": "1169849209",
+      "path": "extractor/ex-generic-v2/my-generic-data-source",
+      "rows": []
+    }
+  ]
+}
