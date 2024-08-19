@@ -24,3 +24,5 @@ jobs:
           kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
           createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
           kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
+      - name: Print branch id
+        run: echo ${{ steps.get_branch_id.outputs.kbc_branch_id }}
