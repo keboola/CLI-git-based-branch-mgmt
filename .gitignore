@@ -4,3 +4,4 @@
 /.keboola/project.json
 
 /venv
+test.py

@@ -69,7 +69,7 @@ def create_new_branch_if_not_exists() -> bool:
 
 def check_if_branch_exists(branch_id: int) -> bool:
     try:
-        kbc_cli.get_branch_detail(get_api_host(), get_token(), branch_id) is not None
+        return kbc_cli.get_branch_detail(get_api_host(), get_token(), branch_id) is not None
     except Exception:
         return False
 
@@ -93,9 +93,13 @@ if not os.path.exists(BRANCH_MAPPING_PATH):
 kbc_branch_id = get_kbc_branch_id()
 
 if kbc_branch_id is None and create_new_branch_if_not_exists():
-    gh_utils.warning(f'Branch ID not found for branch "{get_current_git_branch_name()}, creating new one"')
+    gh_utils.warning(f'Keboola Branch ID not found for branch "{get_current_git_branch_name()}, '
+                     f'creating new one"',
+                     title='Branch ID not found, creating new one')
     kbc_branch_id = kbc_cli.create_new_kbc_branch(get_api_host(), get_token(), get_current_git_branch_name())
-    gh_utils.warning(f'New remote branch ID "{kbc_branch_id}" created for branch "{get_current_git_branch_name()}"')
+    gh_utils.warning(f'New remote branch ID "{kbc_branch_id}" '
+                     f'created for branch "{get_current_git_branch_name()}"',
+                     title='New Keboola Dev branch created')
 
 # double check that the branch exists
 if not check_if_branch_exists(kbc_branch_id):
