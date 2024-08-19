@@ -16,7 +16,7 @@ outputs:
   branch_id:
     description: 'Branch ID'
     # need to specify the extra `value` field for `composite` actions
-    value: ${{ steps.kbc-set-branch-id.outputs.branch_id }}
+    value: ${{ steps.kbc-set-branch-id.outputs.kbc_branch_id }}
 runs:
   using: "composite"
   steps:
@@ -24,26 +24,23 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-#    - name: Install Dependencies
-#      run: pip install -r requirements.txt
-#      shell: bash
+    - name: Install Dependencies
+      run: pip install github_action_utils requests
+      shell: bash
     - name: Pass Inputs to Shell
       run: |
         echo "KBC_BRANCH_ID=${{ inputs.kbcBranchId }}" >> $GITHUB_ENV
-        echo "CREATE_NEW=${{ inputs.createBranchIfNotExists }}" >> $GITHUB_ENV
+        echo "KBC_CREATE_NEW_BRANCH=${{ inputs.createBranchIfNotExists }}" >> $GITHUB_ENV
         echo "KBC_STORAGE_API_TOKEN=${{ inputs.kbcSapiToken }}" >> $GITHUB_ENV
       shell: bash
     - name: Check out repository code
       uses: actions/checkout@v4
-    - name: Install dependencies
-      run: pip install github_action_utils
-      shell: bash
     - name: Get Keboola Branch ID or create new one
       id: kbc-set-branch-id
       run: python .github/actions/kbc_set_branch_id/src/set_branch.py
       shell: bash
     - name: Commit
-      if: ${{ steps.kbc-set-branch-id.outputs.branch_id  != '' }}
+      if: ${{ steps.kbc-set-branch-id.outputs.kbc_branch_id  != '' }}
       run: |
         currentDate=`date +%Y-%m-%d:%T%Z`
         git config --global user.name 'Keboola CLI'
