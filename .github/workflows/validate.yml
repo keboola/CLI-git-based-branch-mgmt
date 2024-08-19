@@ -25,4 +25,6 @@ jobs:
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
       - name: Push dry run
-        run: kbc push --dry-run
+        run: |
+          export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbc_branch_id }}
+          kbc push --dry-run

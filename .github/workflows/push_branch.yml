@@ -45,5 +45,5 @@ jobs:
           kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
       - name: Push to Keboola Connection
         run: |
-          export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbcBranchId }}
-          kbc push "#KeboolaCLI: commit $COMMIT_REF"
+          export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbc_branch_id }}
+          kbc push "#KeboolaCLI: commit $COMMIT_REF; ${{ github.event.head_commit.message }}"
