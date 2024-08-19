@@ -1,0 +1,49 @@
+name: Push (Branch)
+on:
+  workflow_dispatch:
+    inputs:
+      kbcBranchId:
+        description: 'Destination Branch ID (OPT)'
+        default: ''
+      createBranchIfNotExists:
+        description: 'Create new Keboola Dev Branch if not mapped (OPT)'
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+permissions:
+  contents: write
+env:
+  KBC_STORAGE_API_TOKEN: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+  COMMIT_REF: ${{ github.sha }}
+  COMMIT_MSG: ${{ github.event.head_commit.message }}
+jobs:
+  kbc_push:
+    # Skip automatic pull commits
+    if: "!contains(github.event.head_commit.message, 'Automatic pull')"
+    # Stop all other jobs on the same branch, eg. automatic pull
+    concurrency:
+     group: main_branch
+     cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install Keboola as Code CLI
+        uses: ./.github/actions/install
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      # GET BRANCH ID
+      - uses: actions/checkout@v4
+      - name: Get Keboola Branch ID
+        id: get_branch_id
+        uses: ./.github/actions/kbc_set_branch_id
+        with:
+          kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+          createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
+          kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
+      - name: Push to Keboola Connection
+        run: |
+          export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbcBranchId }}
+          kbc push "#KeboolaCLI: commit $COMMIT_REF"

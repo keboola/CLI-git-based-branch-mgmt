@@ -2,9 +2,12 @@ name: TEST ACTION
 on:
   workflow_dispatch:
     inputs:
-      dest_env:
-        description: 'Destination Environment (OPT)'
+      kbcBranchId:
+        description: 'Destination Branch ID (OPT)'
         default: ''
+      createBranchIfNotExists:
+        description: 'Create new Dev Branch if none is mapped and branch with the same name does not exist'
+        default: 'false'
 permissions:
   contents: write
 
@@ -18,6 +21,6 @@ jobs:
         id: get_branch_id
         uses: ./.github/actions/kbc_set_branch_id
         with:
-          kbcSapiToken: ${{ secrets.KBC_SAPI_TOKEN }}
-          createBranchIfNotExists: 'true'
-          kbcBranchId: 123
+          kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+          createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
+          kbcBranchId: ${{ github.event.inputs.kbcBranchId }}

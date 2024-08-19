@@ -10,8 +10,16 @@ jobs:
   kbc-validate:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Check out repository code
         uses: actions/checkout@v4
+      - name: Get Branch ID if in branch
+        if: github.ref != 'refs/heads/main'
+        id: get_branch_id
+        uses: ./.github/actions/kbc_set_branch_id
+        with:
+          kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+          createBranchIfNotExists: 'false'
       - name: Install Keboola as Code CLI
         uses: ./.github/actions/install
         with:
