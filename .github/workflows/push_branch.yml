@@ -1,4 +1,4 @@
-name: Pull (Branch)
+name: Push (Branch)
 on:
   workflow_dispatch:
     inputs:
@@ -16,12 +16,16 @@ permissions:
   contents: write
 env:
   KBC_STORAGE_API_TOKEN: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+  COMMIT_REF: ${{ github.sha }}
+  COMMIT_MSG: ${{ github.event.head_commit.message }}
 jobs:
-  kbc_pull:
-    # Automatic pull can be canceled by push
+  kbc_push:
+    # Skip automatic pull commits
+    if: "!contains(github.event.head_commit.message, 'Automatic pull')"
+    # Stop all other jobs on the same branch, eg. automatic pull
     concurrency:
      group: main_branch
-     cancel-in-progress: false
+     cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -39,23 +43,7 @@ jobs:
           kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
           createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
           kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
-      # Pull remote project's state
-      - name: Pull from Keboola Connection
-        id: kbc_pull_step
+      - name: Push to Keboola Connection
         run: |
-          set -eo pipefail
           export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbcBranchId }}
-          kbc pull --force 2>&1 | tee "$RUNNER_TEMP/log.txt"
-      # Automatic pull can be canceled by push, wait a while
-      - name: Wait
-        run: sleep 20
-      # Commit message contains date and output of the pull command
-      - name: Commit and push
-        run: |
-          currentDate=`date +%Y-%m-%d:%T%Z`
-          pull_log=`cat "$RUNNER_TEMP/log.txt"`
-          git config --global user.name 'Keboola CLI'
-          git config --global user.email 'keboola-cli@users.noreply.github.com'
-          git add -A
-          git commit -a -m "Automatic pull $currentDate" -m "$pull_log" || true
-          git push
+          kbc push "#KeboolaCLI: commit $COMMIT_REF"

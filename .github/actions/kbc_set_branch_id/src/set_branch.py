@@ -95,7 +95,7 @@ kbc_branch_id = get_kbc_branch_id()
 if kbc_branch_id is None and create_new_branch_if_not_exists():
     gh_utils.warning(f'Keboola Branch ID not found for branch "{get_current_git_branch_name()}, '
                      f'creating new one"',
-                     title='Branch ID not found, creating new one')
+                     title='Keboola Branch not found in mapping, creating new remote branch')
     kbc_branch_id = kbc_cli.create_new_kbc_branch(get_api_host(), get_token(), get_current_git_branch_name())
     gh_utils.warning(f'New remote branch ID "{kbc_branch_id}" '
                      f'created for branch "{get_current_git_branch_name()}"',
@@ -103,7 +103,13 @@ if kbc_branch_id is None and create_new_branch_if_not_exists():
 
 # double check that the branch exists
 if not check_if_branch_exists(kbc_branch_id):
-    gh_utils.error(f'Branch ID "{kbc_branch_id}" does not exist in KBC')
+    if kbc_branch_id is None:
+        message = ('Branch ID not found in mapping file, please initialize the branch '
+                   'using PUSH (Branch) or PULL (Branch) action')
+    else:
+        message = f'Branch ID "{kbc_branch_id}" does not exist in KBC'
+    gh_utils.error(message,
+                   title='Branch ID not found')
     raise Exception(f'Branch ID "{kbc_branch_id}" does not exist in KBC')
 
 add_branch_mapping(kbc_branch_id)
