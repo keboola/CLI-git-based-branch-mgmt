@@ -46,9 +46,6 @@ jobs:
           set -eo pipefail
           export KBC_BRANCH_ID=${{ steps.get_branch_id.outputs.kbc_branch_id }}
           kbc pull --force 2>&1 | tee "$RUNNER_TEMP/log.txt"
-      # Automatic pull can be canceled by push, wait a while
-      - name: Wait
-        run: sleep 20
       # Commit message contains date and output of the pull command
       - name: Commit and push
         run: |
