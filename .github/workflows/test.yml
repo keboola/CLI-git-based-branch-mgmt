@@ -18,6 +18,6 @@ jobs:
         id: get_branch_id
         uses: ./.github/actions/kbc_set_branch_id
         with:
-          kbcSapiToken: ${{ secrets.KBC_SAPI_TOKEN }}
+          kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
           createBranchIfNotExists: 'true'
           kbcBranchId: 123
