@@ -13,7 +13,7 @@ inputs:
     required: false
     default: ''
 outputs:
-  branch_id:
+  kbc_branch_id:
     description: 'Branch ID'
     # need to specify the extra `value` field for `composite` actions
     value: ${{ steps.kbc-set-branch-id.outputs.kbc_branch_id }}

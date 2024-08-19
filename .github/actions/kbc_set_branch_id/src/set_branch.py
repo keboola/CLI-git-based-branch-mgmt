@@ -115,4 +115,3 @@ if not check_if_branch_exists(kbc_branch_id):
 add_branch_mapping(kbc_branch_id)
 
 gh_utils.set_output('kbc_branch_id', kbc_branch_id)
-print(f"::set-output name=kbc_branch_id::{kbc_branch_id}")
