@@ -22,3 +22,4 @@ jobs:
         uses: ./.github/actions/kbc_cli_map_branches
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          KBC_STORAGE_API_TOKEN: ${{ secrets.KBC_STORAGE_API_TOKEN }}

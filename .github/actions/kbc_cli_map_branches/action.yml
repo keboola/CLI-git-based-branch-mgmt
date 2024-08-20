@@ -1,17 +1,5 @@
-name: Set Keboola Branch ID
-description: Set's Keboola Branch ID for the current git branch or creates a new one and maps it
-inputs:
-  kbcSapiToken:
-    description: Keboola Connection Storage API Token
-    required: true
-  createBranchIfNotExists:
-    description: Create new Dev Branch if none is mapped and branch with the same name does not exist
-    required: false
-    default: 'false'
-  kbcBranchId:
-    description: Keboola Connection Branch ID
-    required: false
-    default: ''
+name: Map Keboola Branches
+description: Discovers new remote Keboola Connection branches and maps them to newly created git branches
 outputs:
   kbc_branch_id:
     description: 'Branch ID'
@@ -29,23 +17,11 @@ runs:
       shell: bash
     - name: Pass Inputs to Shell
       run: |
-        echo "KBC_BRANCH_ID=${{ inputs.kbcBranchId }}" >> $GITHUB_ENV
-        echo "KBC_CREATE_NEW_BRANCH=${{ inputs.createBranchIfNotExists }}" >> $GITHUB_ENV
         echo "KBC_STORAGE_API_TOKEN=${{ inputs.kbcSapiToken }}" >> $GITHUB_ENV
       shell: bash
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Get Keboola Branch ID or create new one
       id: kbc-set-branch-id
-      run: python .github/actions/kbc_set_branch_id/src/set_branch.py
-      shell: bash
-    - name: Commit
-      if: ${{ steps.kbc-set-branch-id.outputs.kbc_branch_id  != '' }}
-      run: |
-        currentDate=`date +%Y-%m-%d:%T%Z`
-        git config --global user.name 'Keboola CLI'
-        git config --global user.email 'keboola-cli@users.noreply.github.com'
-        git add -A
-        git commit -a -m "Updating branch mapping metadata $currentDate" || true
-        git push
+      run: python .github/actions/kbc_cli_map_branches/src/map_branches.py
       shell: bash

@@ -2,7 +2,7 @@ import json
 import os
 
 import github_action_utils as gh_utils
-from github import Github
+from github import Github, Repository
 
 import kbc_cli
 
@@ -30,10 +30,30 @@ def list_files(startpath):
             print('{}{}'.format(subindent, f))
 
 
-def is_branch_mapped(branch_id: int) -> bool:
+def branch_is_mapped(branch_name: str, branch_id: int, repo: Repository.Repository) -> bool:
+    """
+    Checks if branch exists in the current branch file mapping or in the repository itself.
+    Args:
+        branch_name:
+        branch_id:
+        repo:
+
+    Returns:
+
+    """
+
+    branch_exist = False
     with open(BRANCH_MAPPING_PATH, 'r') as f:
         mapping = json.load(f)
-        return branch_id in mapping.values()
+        mapped_in_mapping_file = branch_id in mapping.values()
+
+    refs = repo.get_git_refs()
+    for ref in refs:
+        if ref.ref == f'refs/heads/{branch_name}':
+            branch_exist = True
+            break
+
+    return mapped_in_mapping_file or branch_exist
 
 
 def create_new_branch_if_not_exists() -> bool:
@@ -71,10 +91,20 @@ remote_branches = kbc_cli.get_branches(get_api_host(), get_token())
 
 gh = Github(gh_utils.get_env('GITHUB_TOKEN'))
 current_repo = gh.get_repo(gh_utils.get_env('GITHUB_REPOSITORY'))
+current_ref = gh_utils.get_env('GITHUB_REF').replace('refs/', '')
+gh_utils.warning(f'Current branch: {current_ref}')
+current_branch_sha = current_repo.get_git_ref(current_ref).object.sha
 
-current_repo.get_workflow('pull_branch.yml').create_dispatch(ref='master')
+# current_repo.get_workflow('pull_branch.yml').create_dispatch(ref='master')
 for branch in remote_branches:
-    if not is_branch_mapped(branch['id']):
-        gh_utils.notice(f'New remote Keboola Dev Branch found, creating new git branch: {branch["name"]}')
-        current_repo.create_git_ref(ref=f'refs/heads/{branch["name"]}', sha='master')
+    if not branch_is_mapped(branch['name'], branch['id'], current_repo) and branch['name'] != 'Main':
+        gh_utils.notice(f'New remote Keboola Dev Branch found, creating new git branch: {branch["name"]}',
+                        title=f'New git branch {branch["name"]} created')
         add_branch_mapping(branch['id'], branch['name'])
+        new_ref = current_repo.create_git_ref(ref=f'refs/heads/{branch["name"]}', sha=current_branch_sha)
+        # gh_utils.warning(f'Triggering pull branch workflow for branch: {branch["name"]}',
+        #                  title=f'Triggering workflow "pull_branch.yml@{branch["name"]}"')
+        # current_repo.get_workflow('pull_branch.yml').create_dispatch(ref=branch["name"],
+        #                                                              inputs={"kbcSapiToken": get_token(),
+        #                                                                      "kbcBranchId": branch["id"],
+        #                                                                      "createBranchIfNotExists": "true"})
