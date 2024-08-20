@@ -12,17 +12,13 @@ permissions:
   contents: write
 
 jobs:
-  test-action:
+  test-create-branch:
     runs-on: ubuntu-latest
     name: Test get branch id
     steps:
       - uses: actions/checkout@v4
-      - name: Test
-        id: get_branch_id
-        uses: ./.github/actions/kbc_set_branch_id
-        with:
-          kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
-          createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
-          kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
-      - name: Print branch id
-        run: echo ${{ steps.get_branch_id.outputs.kbc_branch_id }}
+      - name: Map
+        id: map_cli_branches
+        uses: ./.github/actions/kbc_cli_map_branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
