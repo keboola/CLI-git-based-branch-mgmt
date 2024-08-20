@@ -1,6 +1,7 @@
 import requests
 from kbcstorage.jobs import Jobs
 
+
 def create_new_kbc_branch(api_host: str, token: str, branch_name: str) -> int:
     """
 
@@ -33,8 +34,6 @@ def create_new_kbc_branch(api_host: str, token: str, branch_name: str) -> int:
 
     else:
         raise Exception(response.json())
-
-
 
 
 def get_branch_detail(api_host: str, token: str, branch_id: int) -> dict:

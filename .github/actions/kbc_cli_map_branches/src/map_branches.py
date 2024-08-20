@@ -30,6 +30,11 @@ def list_files(startpath):
             print('{}{}'.format(subindent, f))
 
 
+def get_mapping_file_as_base64_hash() -> str:
+    with open(BRANCH_MAPPING_PATH, 'r') as f:
+        return f.read()
+
+
 def branch_is_mapped(branch_name: str, branch_id: int, repo: Repository.Repository) -> bool:
     """
     Checks if branch exists in the current branch file mapping or in the repository itself.
@@ -102,6 +107,24 @@ for branch in remote_branches:
                         title=f'New git branch {branch["name"]} created')
         add_branch_mapping(branch['id'], branch['name'])
         new_ref = current_repo.create_git_ref(ref=f'refs/heads/{branch["name"]}', sha=current_branch_sha)
+
+        tree = current_repo.get_git_tree(new_ref.object.sha, recursive=True)
+        blobs = tree
+        manifest_file = [b for b in blobs.tree if b.path == BRANCH_MAPPING_PATH]
+        if not manifest_file:
+            file_sha = None
+        else:
+            file_sha = manifest_file[0].sha
+
+        if not file_sha:
+            current_repo.create_file(path=BRANCH_MAPPING_PATH, message='Add new branch mapping',
+                                     content=get_mapping_file_as_base64_hash(),
+                                     branch=branch["name"])
+        else:
+            current_repo.update_file(path=BRANCH_MAPPING_PATH, message='Add new branch mapping',
+                                     content=get_mapping_file_as_base64_hash(),
+                                     sha=file_sha,
+                                     branch=branch["name"])
         # gh_utils.warning(f'Triggering pull branch workflow for branch: {branch["name"]}',
         #                  title=f'Triggering workflow "pull_branch.yml@{branch["name"]}"')
         # current_repo.get_workflow('pull_branch.yml').create_dispatch(ref=branch["name"],
