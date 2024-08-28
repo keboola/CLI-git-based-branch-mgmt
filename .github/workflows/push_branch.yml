@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       kbcBranchId:
-        description: 'Destination Branch ID (OPT)'
+        description: 'Destination Dev Branch ID (OPT)'
         default: ''
       createBranchIfNotExists:
         description: 'Create new Keboola Dev Branch if not mapped (OPT)'
