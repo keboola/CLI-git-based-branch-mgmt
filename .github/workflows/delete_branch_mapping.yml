@@ -1,0 +1,26 @@
+name: Delete Branch Mapping
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm deletion of branch-mapping artifact'
+        required: true
+        default: 'no'
+
+permissions:
+  actions: write
+
+jobs:
+  delete-mapping:
+    runs-on: ubuntu-latest
+    name: Delete branch mapping artifact
+    if: github.event.inputs.confirm == 'yes'
+    steps:
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: branch-mapping
+          failOnError: false
+
+      - name: Confirmation
+        run: echo "Branch mapping artifact has been deleted" 

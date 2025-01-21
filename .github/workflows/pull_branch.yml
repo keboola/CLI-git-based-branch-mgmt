@@ -39,6 +39,12 @@ jobs:
           kbcSapiToken: ${{ secrets.KBC_STORAGE_API_TOKEN }}
           createBranchIfNotExists: ${{ github.event.inputs.createBranchIfNotExists }}
           kbcBranchId: ${{ github.event.inputs.kbcBranchId }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: branch-mapping
+          path: branch-mapping.json
+          retention-days: 90
       # Pull remote project's state
       - name: Pull from Keboola Connection
         id: kbc_pull_step
