@@ -35,6 +35,22 @@ def get_mapping_file_as_base64_hash() -> str:
         return f.read()
 
 
+def sanitize_branch_name(branch_name: str) -> str:
+    """
+    Sanitizes branch name to be valid for Git:
+    - Replaces spaces with hyphens
+    - Removes special characters
+    - Ensures it doesn't begin or end with '/'
+    """
+    # Replace spaces with hyphens
+    sanitized = branch_name.replace(' ', '-')
+    # Remove any special characters that aren't allowed in Git branch names
+    sanitized = ''.join(c for c in sanitized if c.isalnum() or c in '-_/')
+    # Remove leading/trailing slashes
+    sanitized = sanitized.strip('/')
+    return sanitized
+
+
 def branch_is_mapped(branch_name: str, branch_id: int, repo: Repository.Repository) -> bool:
     """
     Checks if branch exists in the current branch file mapping or in the repository itself.
@@ -46,15 +62,16 @@ def branch_is_mapped(branch_name: str, branch_id: int, repo: Repository.Reposito
     Returns:
 
     """
-
     branch_exist = False
+    sanitized_name = sanitize_branch_name(branch_name)
+    
     with open(BRANCH_MAPPING_PATH, 'r') as f:
         mapping = json.load(f)
         mapped_in_mapping_file = branch_id in mapping.values()
 
     refs = repo.get_git_refs()
     for ref in refs:
-        if ref.ref == f'refs/heads/{branch_name}':
+        if ref.ref == f'refs/heads/{sanitized_name}':
             branch_exist = True
             break
 
@@ -102,11 +119,12 @@ current_branch_sha = current_repo.get_git_ref(current_ref).object.sha
 
 # current_repo.get_workflow('pull_branch.yml').create_dispatch(ref='master')
 for branch in remote_branches:
+    sanitized_branch_name = sanitize_branch_name(branch['name'])
     if not branch_is_mapped(branch['name'], branch['id'], current_repo) and branch['name'] != 'Main':
-        gh_utils.notice(f'New remote Keboola Dev Branch found, creating new git branch: {branch["name"]}',
-                        title=f'New git branch {branch["name"]} created')
+        gh_utils.notice(f'New remote Keboola Dev Branch found, creating new git branch: {sanitized_branch_name}',
+                        title=f'New git branch {sanitized_branch_name} created')
         add_branch_mapping(branch['id'], branch['name'])
-        new_ref = current_repo.create_git_ref(ref=f'refs/heads/{branch["name"]}', sha=current_branch_sha)
+        new_ref = current_repo.create_git_ref(ref=f'refs/heads/{sanitized_branch_name}', sha=current_branch_sha)
 
         tree = current_repo.get_git_tree(new_ref.object.sha, recursive=True)
         blobs = tree
@@ -119,12 +137,12 @@ for branch in remote_branches:
         if not file_sha:
             current_repo.create_file(path=BRANCH_MAPPING_PATH, message='Add new branch mapping',
                                      content=get_mapping_file_as_base64_hash(),
-                                     branch=branch["name"])
+                                     branch=sanitized_branch_name)
         else:
             current_repo.update_file(path=BRANCH_MAPPING_PATH, message='Add new branch mapping',
                                      content=get_mapping_file_as_base64_hash(),
                                      sha=file_sha,
-                                     branch=branch["name"])
+                                     branch=sanitized_branch_name)
         # gh_utils.warning(f'Triggering pull branch workflow for branch: {branch["name"]}',
         #                  title=f'Triggering workflow "pull_branch.yml@{branch["name"]}"')
         # current_repo.get_workflow('pull_branch.yml').create_dispatch(ref=branch["name"],
