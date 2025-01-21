@@ -20,19 +20,21 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Python
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-    - name: Install Dependencies
-      run: pip install github_action_utils kbcstorage
+    - name: Install dependencies
       shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ github.action_path }}/requirements.txt
     - name: Pass Inputs to Shell
+      shell: bash
       run: |
         echo "KBC_BRANCH_ID=${{ inputs.kbcBranchId }}" >> $GITHUB_ENV
         echo "KBC_CREATE_NEW_BRANCH=${{ inputs.createBranchIfNotExists }}" >> $GITHUB_ENV
         echo "KBC_STORAGE_API_TOKEN=${{ inputs.kbcSapiToken }}" >> $GITHUB_ENV
-      shell: bash
     - name: Check out repository code
       uses: actions/checkout@v4
     - name: Get Keboola Branch ID or create new one

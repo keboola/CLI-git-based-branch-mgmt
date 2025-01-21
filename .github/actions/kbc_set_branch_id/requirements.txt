@@ -1,0 +1,4 @@
+PyGithub==2.2.0
+requests==2.31.0
+github_action_utils
+kbcstorage
