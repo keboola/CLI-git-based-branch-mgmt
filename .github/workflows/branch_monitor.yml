@@ -1,38 +1,25 @@
-name: Automatic pull
+name: TEST ACTION
 on:
-  schedule:
-    - cron:  '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      kbcBranchId:
+        description: 'Destination Branch ID (OPT)'
+        default: ''
+      createBranchIfNotExists:
+        description: 'Create new Dev Branch if none is mapped and branch with the same name does not exist'
+        default: 'false'
 permissions:
   contents: write
-env:
-  KBC_STORAGE_API_TOKEN: ${{ secrets.KBC_STORAGE_API_TOKEN }}
+
 jobs:
-  kbc_pull:
-    # Automatic pull can be canceled by push
-    concurrency:
-     group: main_branch
-     cancel-in-progress: false
+  test-create-branch:
     runs-on: ubuntu-latest
+    name: Test get branch id
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Install Keboola as Code CLI
-        uses: ./.github/actions/install
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-      # Pull remote project's state
-      - name: Pull from Keboola Connection
-        id: kbc_pull_step
-        run: |
-          set -eo pipefail
-          kbc pull --force 2>&1 | tee "$RUNNER_TEMP/log.txt"
-      # Commit message contains date and output of the pull command
-      - name: Commit and push
-        run: |
-          currentDate=`date +%Y-%m-%d:%T%Z`
-          pull_log=`cat "$RUNNER_TEMP/log.txt"`
-          git config --global user.name 'Keboola CLI'
-          git config --global user.email 'keboola-cli@users.noreply.github.com'
-          git add -A
-          git commit -a -m "Automatic pull $currentDate" -m "$pull_log" || true
-          git push
+      - uses: actions/checkout@v4
+      - name: Map
+        id: map_cli_branches
+        uses: ./.github/actions/kbc_cli_map_branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          KBC_STORAGE_API_TOKEN: ${{ secrets.KBC_STORAGE_API_TOKEN }}
