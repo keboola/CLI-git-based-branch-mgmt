@@ -81,6 +81,8 @@ def add_branch_mapping(branch_id: int):
 
     with open(BRANCH_MAPPING_PATH, 'w') as f:
         json.dump(mapping, f, indent=2)
+    gh_utils.notice(f'Branch ID "{branch_id}" added to mapping file {BRANCH_MAPPING_PATH}, new content is: {mapping}',
+                    title='Branch ID added to mapping file')    
 
 
 # ############################### MAIN CODE ####################################
