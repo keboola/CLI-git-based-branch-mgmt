@@ -41,13 +41,3 @@ runs:
       id: kbc-set-branch-id
       run: python .github/actions/kbc_set_branch_id/src/set_branch.py
       shell: bash
-    - name: Commit
-      if: ${{ steps.kbc-set-branch-id.outputs.kbc_branch_id  != '' }}
-      run: |
-        currentDate=`date +%Y-%m-%d:%T%Z`
-        git config --global user.name 'Keboola CLI'
-        git config --global user.email 'keboola-cli@users.noreply.github.com'
-        git add -A
-        git commit -a -m "Updating branch mapping metadata $currentDate" || true
-        git push
-      shell: bash
